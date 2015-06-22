@@ -8,8 +8,11 @@ import java.util.logging.Logger
 import javax.sql.DataSource
 
 import scala.beans.BeanProperty
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.util.Failure
+import scala.util.Try
 
 object DynamicDataSource {
   /**
@@ -82,6 +85,8 @@ object DynamicDataSource {
    */
   def lookup(serviceName: String): Future[Option[(String, Int)]]
 
+  // Overrides
+
   @BeanProperty var logWriter : PrintWriter =
     _
 
@@ -99,10 +104,10 @@ object DynamicDataSource {
   setLoginTimeout(DynamicDataSource.LoginTimeout)
 
   override def getConnection: Connection =
-    Await.result(getDBConnection().getConnection(lookup(serviceName)), loginTimeoutDur)
+    waitFor(getDBConnection().getConnection(lookup(serviceName)))
 
   override def getConnection(user: String, password: String): Connection =
-    Await.result(getDBConnection().getConnection(lookup(serviceName), user, password), loginTimeoutDur)
+    waitFor(getDBConnection().getConnection(lookup(serviceName), user, password))
 
   override def close(): Unit =
     destroyDBConnection()
@@ -118,6 +123,8 @@ object DynamicDataSource {
 
   override def getParentLogger: Logger =
     throw new SQLFeatureNotSupportedException()
+
+  // Private implementation
 
   /*
    * May only be accessed by getDBConnection and destroyDBConnection
@@ -164,6 +171,13 @@ object DynamicDataSource {
         }
       }
     }
+
+  private def waitFor(op: => Future[Connection]): Connection =
+    Try(Await.result(op, loginTimeoutDur))
+      .recoverWith {
+        case _: TimeoutException => Failure(new SQLTimeoutException())
+      }
+      .get
 }
 
 /*
