@@ -13,6 +13,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class DynamicDataSourceSpec extends WordSpec with Matchers {
   import DynamicDataSourceSpec._
 
+  private val host = "somehost"
+  private val port = 9999
+
   "The dynamic data source" should {
     "throw an exception when no binding can be found" in {
       val source = withFixtures(new NoBindingProxyDataSource())
@@ -22,31 +25,34 @@ class DynamicDataSourceSpec extends WordSpec with Matchers {
     }
 
     "perform a successful lookup" in {
-      val source = withFixtures(new InitialDelayProxyDataSource(0.second, "somehost", 9999))
+      val source = withFixtures(new InitialDelayProxyDataSource(0.second, host, port))
 
       val expectedProps = new Properties(source.getProperties)
       expectedProps.setProperty("user", "someuser")
       expectedProps.setProperty("password", "somepassword")
 
       withSource(source) {
-        source.getConnection() shouldBe TestConnection("jdbc:testdriver://somehost:9999", expectedProps)
+        source.getConnection() shouldBe TestConnection(s"jdbc:testdriver://$host:$port", expectedProps)
       }
     }
 
     "perform a successful lookup with alternate credentials" in {
-      val source = withFixtures(new InitialDelayProxyDataSource(0.second, "somehost", 9999))
+      val user = "otheruser"
+      val password = "otherpassword"
+
+      val source = withFixtures(new InitialDelayProxyDataSource(0.second, host, port))
 
       val expectedProps = new Properties(source.getProperties)
-      expectedProps.setProperty("user", "otheruser")
-      expectedProps.setProperty("password", "otherpassword")
+      expectedProps.setProperty("user", user)
+      expectedProps.setProperty("password", password)
 
       withSource(source) {
-        source.getConnection("otheruser", "otherpassword") shouldBe TestConnection("jdbc:testdriver://somehost:9999", expectedProps)
+        source.getConnection(user, password) shouldBe TestConnection(s"jdbc:testdriver://$host:$port", expectedProps)
       }
     }
 
     "timeout waiting for a lookup" in {
-      val source = withFixtures(new InitialDelayProxyDataSource(2.seconds, "somehost", 9999))
+      val source = withFixtures(new InitialDelayProxyDataSource(2.seconds, host, port))
       source.setLoginTimeout(0)
 
       withSource(source) {
