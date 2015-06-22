@@ -1,6 +1,6 @@
 package com.typesafe.dynamicdatasource
 
-import java.io.{PrintWriter, Closeable}
+import java.io.{ PrintWriter, Closeable }
 import java.sql._
 import java.util.Properties
 import java.util.concurrent.TimeUnit
@@ -10,7 +10,7 @@ import javax.sql.DataSource
 import scala.beans.BeanProperty
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.util.Failure
 import scala.util.Try
 
@@ -35,7 +35,7 @@ object DynamicDataSource {
  * in that setting them post having a connection being sought has no effect. However closing the
  * data source will make any new setting available to the next obtaining of a connection.
  */
- abstract class DynamicDataSource extends DataSource with Closeable {
+abstract class DynamicDataSource extends DataSource with Closeable {
   /**
    * The database url.
    */
@@ -87,7 +87,7 @@ object DynamicDataSource {
 
   // Overrides
 
-  @BeanProperty var logWriter : PrintWriter =
+  @BeanProperty var logWriter: PrintWriter =
     _
 
   var loginTimeout: Int =
@@ -184,9 +184,9 @@ object DynamicDataSource {
  * Given a url and properties, this class will handle connections via the provided database driver.
  */
 private[dynamicdatasource] class DriverConnector(
-  url: String,
-  val driver: Driver,
-  properties: Properties) {
+    url: String,
+    val driver: Driver,
+    properties: Properties) {
 
   def getConnection(hostAndPort: Future[Option[(String, Int)]]): Future[Connection] =
     getConnectionWith(hostAndPort, properties)

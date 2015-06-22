@@ -5,10 +5,10 @@ import java.util.Properties
 import java.util.concurrent.Executor
 import java.util.logging.Logger
 
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{ WordSpec, Matchers }
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class DynamicDataSourceSpec extends WordSpec with Matchers {
   import DynamicDataSourceSpec._
