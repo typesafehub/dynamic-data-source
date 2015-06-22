@@ -1,6 +1,8 @@
 import scalariform.formatter.preferences._
 import bintray.Keys._
 
+organization := "com.typesafe.dynamicdatasource"
+
 name := "dynamic-data-source"
 
 scalaVersion := "2.11.6"
