@@ -16,10 +16,8 @@ class DynamicDataSourceSpec extends WordSpec with Matchers {
   "The dynamic data source" should {
     "throw an exception when no binding can be found" in {
       val source = withFixtures(new NoBindingProxyDataSource())
-      try {
+      withSource(source) {
         intercept[SQLException](source.getConnection())
-      } finally {
-        source.close()
       }
     }
 
@@ -30,10 +28,8 @@ class DynamicDataSourceSpec extends WordSpec with Matchers {
       expectedProps.setProperty("user", "someuser")
       expectedProps.setProperty("password", "somepassword")
 
-      try {
+      withSource(source) {
         source.getConnection() shouldBe TestConnection("jdbc:testdriver://somehost:9999", expectedProps)
-      } finally {
-        source.close()
       }
     }
 
@@ -44,10 +40,8 @@ class DynamicDataSourceSpec extends WordSpec with Matchers {
       expectedProps.setProperty("user", "otheruser")
       expectedProps.setProperty("password", "otherpassword")
 
-      try {
+      withSource(source) {
         source.getConnection("otheruser", "otherpassword") shouldBe TestConnection("jdbc:testdriver://somehost:9999", expectedProps)
-      } finally {
-        source.close()
       }
     }
 
@@ -55,10 +49,8 @@ class DynamicDataSourceSpec extends WordSpec with Matchers {
       val source = withFixtures(new InitialDelayProxyDataSource(2.seconds, "somehost", 9999))
       source.setLoginTimeout(0)
 
-      try {
+      withSource(source) {
         intercept[SQLTimeoutException](source.getConnection())
-      } finally {
-        source.close()
       }
     }
   }
@@ -91,6 +83,13 @@ object DynamicDataSourceSpec {
     source.setUser("someuser")
     source
   }
+
+  def withSource[T](source: DynamicDataSource)(op: => T): T =
+    try {
+      op
+    } finally {
+      source.close()
+    }
 
   class TestDriver extends Driver {
     override def acceptsURL(url: String): Boolean =
