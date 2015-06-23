@@ -86,6 +86,7 @@ object DynamicDataSourceSpec {
     source.setProperties(props)
     source.setServiceName("myservice")
     source.setUrl("jdbc:testdriver://{host}:{port}")
+    source.setAcceptUrl("jdbc:testdriver://127.0.0.1:1111")
     source.setUser("someuser")
     source
   }

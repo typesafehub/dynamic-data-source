@@ -37,9 +37,24 @@ object DynamicDataSource {
  */
 abstract class DynamicDataSource extends DataSource with Closeable {
   /**
-   * The database url.
+   * The database url that will be used as a template when connecting with the database.
+   * The {host} and {port} substitution markers are required e.g.:
+   *
+   *   "jdbc:testdriver://{host}:{port}"
    */
   @BeanProperty var url: String =
+    _
+
+  /**
+   * The database url purely for the purposes of locating a database driver. This will be
+   * almost the same as the url property, except that some drivers require a semantically
+   * valid host and port. This property is required given that we never know the host and
+   * port until we need to connect... which is a different point in time to establishing
+   * the driver. A sample value::
+   *
+   *   "jdbc:testdriver://127.0.0.1:1111"
+   */
+  @BeanProperty var acceptUrl: String =
     _
 
   /**
@@ -134,11 +149,11 @@ abstract class DynamicDataSource extends DataSource with Closeable {
   private def getDBConnection(): DriverConnector = {
 
     require(url != null)
+    require(acceptUrl != null)
     require(user != null)
     require(password != null)
     require(serviceName != null)
     require(driver != null)
-    require(properties != null)
 
     val c0 = connection
     if (c0 == null) {
@@ -146,11 +161,13 @@ abstract class DynamicDataSource extends DataSource with Closeable {
         val c1 = connection
         if (c1 == null) {
           Class.forName(driver)
-          val registeredDriver = DriverManager.getDriver(url)
+          val registeredDriver = DriverManager.getDriver(acceptUrl)
 
           val connectionProperties = new Properties(properties)
-          connectionProperties.setProperty("user", user)
-          connectionProperties.setProperty("password", password)
+          if (user != null && password != null) {
+            connectionProperties.setProperty("user", user)
+            connectionProperties.setProperty("password", password)
+          }
           val c2 = new DriverConnector(url, registeredDriver, connectionProperties)
           connection = c2
           c2
