@@ -12,5 +12,5 @@ The library may be used by any JVM based language that is using JDBC.
 To use from your sbt build:
 
 ```scala
-libraryDependencies += "com.typesafe.dynamicdatasource" %% "dynamic-data-source" % "1.0.0"
+libraryDependencies += "com.typesafe.dynamicdatasource" %% "dynamic-data-source" % "0.1.0"
 ```
